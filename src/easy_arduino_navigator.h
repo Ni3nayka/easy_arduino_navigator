@@ -11,11 +11,11 @@
 /* MANUAL:
  *
  * direction:
- *   1
- *   |
- * 2-0-4
- *   |
- *   3
+ *   1       N
+ *   |       |
+ * 2-0-4   W-0-E
+ *   |       |
+ *   3       S
  *
  * coordinate system:
  * ^ y
@@ -27,7 +27,19 @@
 #pragma once
 
 #define RIGHT_ARM_RULE 1
-#define LEFT_ARM_RULE 0
+#define LEFT_ARM_RULE  0
+
+#define NAVIGATOR_END          0
+#define NAVIGATOR_MOVE_FORWARD 1
+#define NAVIGATOR_MOVE_LEFT    2
+#define NAVIGATOR_MOVE_RIGHT   3
+#define NAVIGATOR_MOVE_RIGHT_AND_FORWARD 31 // rirht, NEXT forward (after right)
+#define NAVIGATOR_MOVE_LEFT_AND_FORWARD  21
+
+#define NAVIGATOR_DIR_N 1
+#define NAVIGATOR_DIR_W 2
+#define NAVIGATOR_DIR_S 3
+#define NAVIGATOR_DIR_E 4
 
 class Navigator {
     public:
@@ -44,6 +56,7 @@ class Navigator {
         void run_forward();
 
         bool this_is_finish();
+        int next_move(bool forward_wall, bool side_wall);
 
     private:
         bool _hand;
@@ -100,4 +113,46 @@ void Navigator::run_forward() {
 
 bool Navigator::this_is_finish() {
     return _real_dir==_end_dir && _real_X==_end_X && _real_Y && _end_Y;
+}
+
+int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - empty
+    // finish
+    if (Navigator::this_is_finish())
+        return NAVIGATOR_END;
+    //turn on finish
+    if (_real_X==_end_X && _real_Y==_end_Y) {
+        if (_real_dir-1==_end_dir || _real_dir==1 && _end_dir==4) {
+            Navigator::turn_right();
+            return NAVIGATOR_MOVE_RIGHT;
+        }
+        Navigator::turn_left();
+        return NAVIGATOR_MOVE_LEFT;
+    }
+    // move in finish (the rule of the left/right hand)
+    if (_hand==RIGHT_ARM_RULE) {
+        if (side_wall) {
+            if (forward_wall) {
+                Navigator::turn_left();
+                return NAVIGATOR_MOVE_LEFT;
+            }
+            Navigator::run_forward();
+            return NAVIGATOR_MOVE_FORWARD;
+        }
+        Navigator::turn_right();
+        Navigator::run_forward();
+        return NAVIGATOR_MOVE_RIGHT_AND_FORWARD;
+    }
+    else {
+        if (side_wall) {
+            if (forward_wall) {
+                Navigator::turn_right();
+                return NAVIGATOR_MOVE_RIGHT;
+            }
+            Navigator::run_forward();
+            return NAVIGATOR_MOVE_FORWARD;
+        }
+        Navigator::turn_left();
+        Navigator::run_forward();
+        return NAVIGATOR_MOVE_LEFT_AND_FORWARD;
+    }
 }
