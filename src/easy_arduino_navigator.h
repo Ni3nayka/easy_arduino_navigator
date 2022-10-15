@@ -112,7 +112,7 @@ void Navigator::run_forward() {
 }
 
 bool Navigator::this_is_finish() {
-    return _real_dir==_end_dir && _real_X==_end_X && _real_Y && _end_Y;
+    return _real_dir==_end_dir && _real_X==_end_X && _real_Y==_end_Y;
 }
 
 int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - empty
