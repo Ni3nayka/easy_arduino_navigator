@@ -42,117 +42,117 @@
 #define NAVIGATOR_DIR_E 4
 
 class Navigator {
-    public:
-        Navigator(bool hand);
-        void set_start(int X, int Y, int dir);
-        void set_finish(int X, int Y, int dir);
+  public:
+    Navigator(bool hand);
+    void set_start(int X, int Y, int dir);
+    void set_finish(int X, int Y, int dir);
 
-        int get_x();
-        int get_y();
-        int get_dir();
+    int get_x();
+    int get_y();
+    int get_dir();
 
-        void turn_right();
-        void turn_left();
-        void run_forward();
+    void turn_right();
+    void turn_left();
+    void run_forward();
 
-        bool this_is_finish();
-        int next_move(bool forward_wall, bool side_wall);
+    bool this_is_finish();
+    int next_move(bool forward_wall, bool side_wall);
 
-    private:
-        bool _hand;
-        int _real_dir, _end_dir;
-        int _real_X, _real_Y;
-        int _end_X, _end_Y;
+  private:
+    bool hand;
+    int real_dir, end_dir;
+    int real_X, real_Y;
+    int end_X, end_Y;
 };
 
 Navigator::Navigator(bool hand) {
-    _hand = hand;
+  Navigator::hand = hand;
 }
 
 void Navigator::set_start(int X, int Y, int dir) {
-    _real_X = X;
-    _real_Y = Y;
-    _real_dir = dir;
+  Navigator::real_X = X;
+  Navigator::real_Y = Y;
+  Navigator::real_dir = dir;
 }
 
 void Navigator::set_finish(int X, int Y, int dir) {
-    _end_X = X;
-    _end_Y = Y;
-    _end_dir = dir;
+  Navigator::end_X = X;
+  Navigator::end_Y = Y;
+  Navigator::end_dir = dir;
 }
 
 int Navigator::get_x() {
-    return _real_X;
+  return Navigator::real_X;
 }
-int Navigator::get_y(){
-    return _real_Y;
+int Navigator::get_y() {
+  return Navigator::real_Y;
 }
 
-int Navigator::get_dir(){
-    return _real_dir;
+int Navigator::get_dir() {
+  return Navigator::real_dir;
 }
 
 void Navigator::turn_right() {
-    _real_dir--;
-    if (_real_dir<1)
-        _real_dir += 4;
+  Navigator::real_dir--;
+  if (Navigator::real_dir < 1)
+    Navigator::real_dir += 4;
 }
 
 void Navigator::turn_left() {
-    _real_dir++;
-    if (_real_dir>4)
-        _real_dir -= 4;
+  Navigator::real_dir++;
+  if (Navigator::real_dir > 4)
+    Navigator::real_dir -= 4;
 }
 
 void Navigator::run_forward() {
-    if      (_real_dir==1) _real_Y++;
-    else if (_real_dir==2) _real_X--;
-    else if (_real_dir==3) _real_Y--;
-    else if (_real_dir==4) _real_X++;
+  if      (Navigator::real_dir == 1) Navigator::real_Y++;
+  else if (Navigator::real_dir == 2) Navigator::real_X--;
+  else if (Navigator::real_dir == 3) Navigator::real_Y--;
+  else if (Navigator::real_dir == 4) Navigator::real_X++;
 }
 
 bool Navigator::this_is_finish() {
-    return _real_dir==_end_dir && _real_X==_end_X && _real_Y==_end_Y;
+  return Navigator::real_dir == Navigator::end_dir && Navigator::real_X == Navigator::end_X && Navigator::real_Y == Navigator::end_Y;
 }
 
 int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - empty
-    // finish
-    if (Navigator::this_is_finish())
-        return NAVIGATOR_END;
-    //turn on finish
-    if (_real_X==_end_X && _real_Y==_end_Y) {
-        if (_real_dir-1==_end_dir || _real_dir==1 && _end_dir==4) {
-            Navigator::turn_right();
-            return NAVIGATOR_MOVE_RIGHT;
-        }
+  // finish
+  if (Navigator::this_is_finish())
+    return NAVIGATOR_END;
+  //turn on finish
+  if (Navigator::real_X == Navigator::end_X && Navigator::real_Y == Navigator::end_Y) {
+    if (Navigator::real_dir - 1 == Navigator::end_dir || Navigator::real_dir == 1 && Navigator::end_dir == 4) {
+      Navigator::turn_right();
+      return NAVIGATOR_MOVE_RIGHT;
+    }
+    Navigator::turn_left();
+    return NAVIGATOR_MOVE_LEFT;
+  }
+  // move in finish (the rule of the left/right hand)
+  if (Navigator::hand == RIGHT_ARM_RULE) {
+    if (side_wall) {
+      if (forward_wall) {
         Navigator::turn_left();
         return NAVIGATOR_MOVE_LEFT;
+      }
+      Navigator::run_forward();
+      return NAVIGATOR_MOVE_FORWARD;
     }
-    // move in finish (the rule of the left/right hand)
-    if (_hand==RIGHT_ARM_RULE) {
-        if (side_wall) {
-            if (forward_wall) {
-                Navigator::turn_left();
-                return NAVIGATOR_MOVE_LEFT;
-            }
-            Navigator::run_forward();
-            return NAVIGATOR_MOVE_FORWARD;
-        }
+    Navigator::turn_right();
+    Navigator::run_forward();
+    return NAVIGATOR_MOVE_RIGHT_AND_FORWARD;
+  }
+  else {
+    if (side_wall) {
+      if (forward_wall) {
         Navigator::turn_right();
-        Navigator::run_forward();
-        return NAVIGATOR_MOVE_RIGHT_AND_FORWARD;
+        return NAVIGATOR_MOVE_RIGHT;
+      }
+      Navigator::run_forward();
+      return NAVIGATOR_MOVE_FORWARD;
     }
-    else {
-        if (side_wall) {
-            if (forward_wall) {
-                Navigator::turn_right();
-                return NAVIGATOR_MOVE_RIGHT;
-            }
-            Navigator::run_forward();
-            return NAVIGATOR_MOVE_FORWARD;
-        }
-        Navigator::turn_left();
-        Navigator::run_forward();
-        return NAVIGATOR_MOVE_LEFT_AND_FORWARD;
-    }
+    Navigator::turn_left();
+    Navigator::run_forward();
+    return NAVIGATOR_MOVE_LEFT_AND_FORWARD;
+  }
 }
