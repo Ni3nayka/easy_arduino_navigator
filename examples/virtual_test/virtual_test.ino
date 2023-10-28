@@ -10,7 +10,7 @@
 #include <easy_arduino_navigator.h> // подключаем бибилиотеку
 
 // создаем объект навигатора, который будет нас направлять 
-Navigator navigator(RIGHT_ARM_RULE); // RIGHT_ARM_RULE/LEFT_ARM_RULE - изучать лабиринт по правилу правой/левой руки
+Navigator navigator(NAVIGATOR_RIGHT_ARM_RULE); // NAVIGATOR_RIGHT_ARM_RULE/NAVIGATOR_LEFT_ARM_RULE - изучать лабиринт по правилу правой/левой руки
 
 /* МАНУАЛ:
  *
@@ -75,7 +75,7 @@ void setup() {
   // задаем точки и направления старта и финиша
   navigator.set_start(0,0,NAVIGATOR_DIR_E); // (X_coordinate, Y_coordinate, direction)
   navigator.set_finish(4,4,NAVIGATOR_DIR_S); // (X_coordinate, Y_coordinate, direction-его можно не задавать)
-  // прогоняем виртуального "робота" по виртуальному "полю"
+  // прогоняем виртуального "робота" по виртуальному "полю" (..\документы\Arduino\libraries\easy_arduino_navigator\examples\virtual_test)
   test();
   move(0,1);
   move(0,1);

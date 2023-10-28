@@ -26,8 +26,8 @@
 
 #pragma once
 
-#define RIGHT_ARM_RULE 1
-#define LEFT_ARM_RULE  0
+#define NAVIGATOR_RIGHT_ARM_RULE 1
+#define NAVIGATOR_LEFT_ARM_RULE  0
 
 #define NAVIGATOR_END          0
 #define NAVIGATOR_MOVE_FORWARD 1
@@ -35,6 +35,7 @@
 #define NAVIGATOR_MOVE_RIGHT   3
 #define NAVIGATOR_MOVE_RIGHT_AND_FORWARD 31 // rirht, NEXT forward (after right)
 #define NAVIGATOR_MOVE_LEFT_AND_FORWARD  21
+#define NAVIGATOR_ERROR_LONG_ROUTE 100
 
 #define NAVIGATOR_DIR_N 1
 #define NAVIGATOR_DIR_W 2
@@ -57,12 +58,14 @@ class Navigator {
 
     bool this_is_finish();
     int next_move(bool forward_wall, bool side_wall);
+    int next_move_backward();
 
   private:
     bool hand;
     int real_dir, end_dir;
     int real_X, real_Y;
     int end_X, end_Y;
+    int quantity_points; // 0 - если не требуется возврат
 };
 
 Navigator::Navigator(bool hand) {
@@ -129,7 +132,7 @@ int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - e
     return NAVIGATOR_MOVE_LEFT;
   }
   // move in finish (the rule of the left/right hand)
-  if (Navigator::hand == RIGHT_ARM_RULE) {
+  if (Navigator::hand == NAVIGATOR_RIGHT_ARM_RULE) {
     if (side_wall) {
       if (forward_wall) {
         Navigator::turn_left();
@@ -155,4 +158,8 @@ int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - e
     Navigator::run_forward();
     return NAVIGATOR_MOVE_LEFT_AND_FORWARD;
   }
+}
+
+int Navigator::next_move_backward() {
+  
 }
