@@ -224,6 +224,7 @@ int Navigator::next_move_backward() {
     return NAVIGATOR_END;
   int x = Navigator::real_X;
   int y = Navigator::real_Y;
+  int d = Navigator::real_dir;
   Navigator::run_forward(0);
   if (road[Navigator::road_i-2][0]==real_X && road[Navigator::road_i-2][1]==real_Y) {
     Navigator::road_i--;
@@ -232,7 +233,18 @@ int Navigator::next_move_backward() {
   else {
     Navigator::real_X = x;
     Navigator::real_Y = y;
-    Navigator::turn_left();
-    return NAVIGATOR_MOVE_LEFT;
+    Navigator::turn_right();
+    Navigator::run_forward(0);
+    if (road[Navigator::road_i-2][0]==real_X && road[Navigator::road_i-2][1]==real_Y) {
+      Navigator::road_i--;
+      return NAVIGATOR_MOVE_RIGHT_AND_FORWARD;
+    }
+    else {
+      Navigator::real_X = x;
+      Navigator::real_Y = y;
+      Navigator::real_dir = d;
+      Navigator::turn_left();
+      return NAVIGATOR_MOVE_LEFT;
+    }
   }
 }
