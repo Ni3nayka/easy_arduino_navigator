@@ -1,11 +1,4 @@
-/*
- * Integration the Trackduino to Arduino IDE:
- * https://github.com/Ni3nayka/easy_arduino_navigator
- *
- * author: Egor Bakay <egor_bakay@inbox.ru>
- * write:  october 2022
- * modify: october 2023
- */
+#define NAVIGATOR_QUANTITY_POINT 25 // количество точек, только если надо возвращаться назад, если нет, можно закоментить
 
 #include <easy_arduino_navigator.h> // подключаем бибилиотеку
 
@@ -47,6 +40,10 @@ void move(bool forward_wall, bool side_wall) { // подпрограмма дл�
   }
   int t = navigator.next_move(forward_wall,side_wall); // спрашиваем у навигатора что делать, и подаем ему на вход наличие стенок (данные с датчиков, 1 - стенка есть (рядом), 0 - стенки нет (рядом))
   // при вызове этой (предыдущей) команды навигатор считает что вы выполните его команду (t) без ошибок
+  robot_move(t);
+}
+
+void robot_move(int t) { // выполняем роботом заданную команду
   if (t==NAVIGATOR_END) { // если навигатор сказал что мы приехали
     Serial.println("end");
     return;
@@ -68,6 +65,9 @@ void move(bool forward_wall, bool side_wall) { // подпрограмма дл�
     Serial.println("turn left");
     Serial.println("move forward");
   }
+  if (t==NAVIGATOR_ERROR_LONG_ROUTE) { // ошибка - вы где-то ошиблись, из-за чего путь стал длиннее максимально возможного
+    Serial.println("error: long route");
+  }
 }
 
 void setup() {
@@ -75,7 +75,7 @@ void setup() {
   // задаем точки и направления старта и финиша
   navigator.set_start(0,0,NAVIGATOR_DIR_E); // (X_coordinate, Y_coordinate, direction)
   navigator.set_finish(4,4,NAVIGATOR_DIR_S); // (X_coordinate, Y_coordinate, direction-его можно не задавать)
-  // прогоняем виртуального "робота" по виртуальному "полю" (..\документы\Arduino\libraries\easy_arduino_navigator\examples\virtual_test)
+  // прогоняем виртуального "робота" по виртуальному "полю"
   test();
   move(0,1);
   move(0,1);
@@ -85,7 +85,7 @@ void setup() {
   move(0,1);
   move(0,0);
   move(0,1);
-  
+
   move(0,0);
   move(1,1);
   move(1,1);
@@ -102,6 +102,12 @@ void setup() {
   move(1,1);
 
   test();
+
+  // возврат на старт
+  while (navigator.this_is_start()==0) { // пока мы не на старте
+    int t = navigator.next_move_backward(); // запрашиваем что делать
+    robot_move(t); // делаем
+  }
 
 }
 

@@ -26,6 +26,10 @@
 
 #pragma once
 
+#ifndef NAVIGATOR_QUANTITY_POINT 
+#define NAVIGATOR_QUANTITY_POINT 0
+#endif
+
 #define NAVIGATOR_RIGHT_ARM_RULE 1
 #define NAVIGATOR_LEFT_ARM_RULE  0
 
@@ -54,28 +58,47 @@ class Navigator {
 
     void turn_right();
     void turn_left();
-    void run_forward();
+    void run_forward(bool forward);
 
     bool this_is_finish();
     int next_move(bool forward_wall, bool side_wall);
+
+    bool this_is_start();
     int next_move_backward();
 
   private:
     bool hand;
+    int start_X, start_Y;
     int real_dir, end_dir;
     int real_X, real_Y;
     int end_X, end_Y;
-    int quantity_points; // 0 - если не требуется возврат
+    int road[NAVIGATOR_QUANTITY_POINT][2];
+    int road_i;
+    bool error_long_route;
 };
 
 Navigator::Navigator(bool hand) {
   Navigator::hand = hand;
+  Navigator::error_long_route = false;
+  Navigator::road_i = 0;
+  Navigator::error_long_route = false;
+//  for (int i = 0; i<NAVIGATOR_QUANTITY_POINT; i++) {
+//    Navigator::road[i][0] = 0;
+//    Navigator::road[i][1] = 0;
+//  }
 }
 
 void Navigator::set_start(int X, int Y, int dir) {
   Navigator::real_X = X;
   Navigator::real_Y = Y;
+  Navigator::start_X = X;
+  Navigator::start_Y = Y;
   Navigator::real_dir = dir;
+  if (NAVIGATOR_QUANTITY_POINT>0) {
+    road[0][0] = X;
+    road[0][1] = Y;
+    Navigator::road_i = 1;
+  }
 }
 
 void Navigator::set_finish(int X, int Y, int dir) {
@@ -107,18 +130,45 @@ void Navigator::turn_left() {
     Navigator::real_dir -= 4;
 }
 
-void Navigator::run_forward() {
+void Navigator::run_forward(bool forward=true) {
+  // движение
   if      (Navigator::real_dir == 1) Navigator::real_Y++;
   else if (Navigator::real_dir == 2) Navigator::real_X--;
   else if (Navigator::real_dir == 3) Navigator::real_Y--;
   else if (Navigator::real_dir == 4) Navigator::real_X++;
+  // запоминание кратчайшего пути назад
+  if (NAVIGATOR_QUANTITY_POINT>0 && forward) { 
+    if (NAVIGATOR_QUANTITY_POINT<=Navigator::road_i) {
+      Navigator::error_long_route = true;
+      return;
+    }
+    bool flag = true;
+    for (int i = Navigator::road_i-1; i>=0; i--) {
+      if (road[i][0]==real_X && road[i][1]==real_Y) {
+        Navigator::road_i = i+1;
+        flag = false;
+        break;
+      }
+    }
+    if (flag) {
+      road[Navigator::road_i][0] = Navigator::real_X;
+      road[Navigator::road_i][1] = Navigator::real_Y;
+      Navigator::road_i++;
+    }
+  }
 }
 
 bool Navigator::this_is_finish() {
   return Navigator::real_dir == Navigator::end_dir && Navigator::real_X == Navigator::end_X && Navigator::real_Y == Navigator::end_Y;
 }
 
+bool Navigator::this_is_start() {
+  return Navigator::real_X == Navigator::start_X && Navigator::real_Y == Navigator::start_Y;
+}
+
 int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - empty
+  if (Navigator::error_long_route) 
+    return NAVIGATOR_ERROR_LONG_ROUTE;
   // finish
   if (Navigator::this_is_finish())
     return NAVIGATOR_END;
@@ -161,5 +211,28 @@ int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - e
 }
 
 int Navigator::next_move_backward() {
-  
+//  for (int i=0; i<NAVIGATOR_QUANTITY_POINT; i++) {
+//    Serial.print(road[i][0]);
+//    Serial.print("-");
+//    Serial.print(road[i][1]);
+//    Serial.print(" ");
+//  }
+//  Serial.println();
+  if (NAVIGATOR_QUANTITY_POINT==0 or Navigator::error_long_route) 
+    return NAVIGATOR_ERROR_LONG_ROUTE;
+  if (Navigator::this_is_start()) 
+    return NAVIGATOR_END;
+  int x = Navigator::real_X;
+  int y = Navigator::real_Y;
+  Navigator::run_forward(0);
+  if (road[Navigator::road_i-2][0]==real_X && road[Navigator::road_i-2][1]==real_Y) {
+    Navigator::road_i--;
+    return NAVIGATOR_MOVE_FORWARD;
+  }
+  else {
+    Navigator::real_X = x;
+    Navigator::real_Y = y;
+    Navigator::turn_left();
+    return NAVIGATOR_MOVE_LEFT;
+  }
 }
