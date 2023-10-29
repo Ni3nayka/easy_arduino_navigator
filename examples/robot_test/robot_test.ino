@@ -1,3 +1,12 @@
+/*
+ * Integration the Trackduino to Arduino IDE:
+ * https://github.com/Ni3nayka/easy_arduino_navigator
+ *
+ * author: Egor Bakay <egor_bakay@inbox.ru>
+ * write:  october 2023
+ * modify: october 2023
+ */
+
 #define NAVIGATOR_QUANTITY_POINT 25 // количество точек (квадратиков) в лабиринте, нужно только если надо возвращаться назад по оптимальному пути, если нет, можно закоментировать (удалить). Здесь лабиринт 5х5, следовательно количество точек 25
 
 #include <easy_arduino_navigator.h> // подключаем бибилиотеку
@@ -81,6 +90,7 @@ void setup() {
     test(); // выводим где мы и куда направлены
   }
 
+  Serial.println("===");
 
   // возврат на старт
   while (navigator.this_is_start()==0) { // пока мы не на старте
@@ -88,7 +98,6 @@ void setup() {
     robot_move(t); // делаем
     test(); // выводим где мы и куда направлены
   }
-
 }
 
 void loop() {

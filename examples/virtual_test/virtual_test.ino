@@ -1,3 +1,12 @@
+/*
+ * Integration the Trackduino to Arduino IDE:
+ * https://github.com/Ni3nayka/easy_arduino_navigator
+ *
+ * author: Egor Bakay <egor_bakay@inbox.ru>
+ * write:  october 2022
+ * modify: october 2023
+ */
+
 #define NAVIGATOR_QUANTITY_POINT 25 // количество точек (квадратиков) в лабиринте, нужно только если надо возвращаться назад по оптимальному пути, если нет, можно закоментировать (удалить). Здесь лабиринт 5х5, следовательно количество точек 25
 
 #include <easy_arduino_navigator.h> // подключаем бибилиотеку
@@ -24,6 +33,32 @@ Navigator navigator(NAVIGATOR_RIGHT_ARM_RULE); // NAVIGATOR_RIGHT_ARM_RULE/NAVIG
  * |
  * +-----> x
  */
+
+// создаем массив, в котором будут попарно записаны значения, которые мы бы получили при движении по полю {передний датчик, боковой датчик}, в хронологическом порядке
+// виртуальное "поле" (..\документы\Arduino\libraries\easy_arduino_navigator\examples\virtual_test)
+bool robot_virtual_sensors[21][2] = {
+  {0,1},
+  {0,1},
+  {0,1},
+  {1,1},
+  {1,1},
+  {0,1},
+  {0,0},
+  {0,1},
+  {0,0},
+  {1,1},
+  {1,1},
+  {0,1},
+  {0,0},
+  {0,1},
+  {1,0},
+  {0,1},
+  {1,1}, // в этот момент мы уже доедем, так что просто добавляем каких-то значений (для тестов)
+  {1,1},
+  {1,1},
+  {1,1},
+  {1,1}
+};
 
 void test() { // подпрограмма для вывода данных о положении робота в пространстве
   Serial.print(navigator.get_x()); // координата робота по Х
@@ -76,38 +111,27 @@ void setup() {
   // задаем точки и направления старта и финиша
   navigator.set_start(0,0,NAVIGATOR_DIR_E); // (X_coordinate, Y_coordinate, direction)
   navigator.set_finish(4,4,NAVIGATOR_DIR_S); // (X_coordinate, Y_coordinate, direction-его можно не задавать)
-  
-  // прогоняем виртуального "робота" по виртуальному "полю"
-  test();
-  move(0,1);
-  move(0,1);
-  move(0,1);
-  move(1,1);
-  move(1,1);
-  move(0,1);
-  move(0,0);
-  move(0,1);
-  move(0,0);
-  move(1,1);
-  move(1,1);
-  move(0,1);
-  move(0,0);
-  move(0,1);
-  move(1,0);
-  move(0,1);
-  move(1,1);
-  move(1,1);
-  move(1,1);
-  move(1,1);
-  move(1,1);
-  test();
+
+  // едем по неизвестному полю от старта до финиша
+  int i = 0; // счетчик для реализации движения "виртуального робота по виртуальному полю"
+  while (navigator.this_is_finish()==0) { // если мы не на финише
+    // создаем две переменные, в которые запишем наличие(1) или отсутствие(0) стенки раядом для переднего и бокового датчика соответственно, данные для этого теста берем из массива "виртуального поля"
+    bool forward_wall = robot_virtual_sensors[i][0]; // "опрашиваем" передний датчик
+    bool side_wall = robot_virtual_sensors[i][1]; // "опрашиваем" боковой датчик
+    i++; // увелисили значение счетчика чтобы в следующий раз взять из массива следующее, в хронологическом порядке, значение 
+    int t = navigator.next_move(forward_wall,side_wall); // запрашиваем что делать, и подаем ему на вход наличие стенок рядом (данные получены выше)
+    robot_move(t); // делаем
+    test(); // выводим где мы и куда направлены
+  }
+
+  Serial.println("===");
 
   // возврат на старт
   while (navigator.this_is_start()==0) { // пока мы не на старте
     int t = navigator.next_move_backward(); // запрашиваем что делать
     robot_move(t); // делаем
+    test(); // выводим где мы и куда направлены
   }
-
 }
 
 void loop() {
