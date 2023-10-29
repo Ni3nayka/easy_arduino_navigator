@@ -68,16 +68,6 @@ void test() { // подпрограмма для вывода данных о п
   Serial.println(navigator.get_dir()); // направление робота (NAVIGATOR_DIR_N/NAVIGATOR_DIR_W/NAVIGATOR_DIR_S/NAVIGATOR_DIR_E)
 }
 
-void move(bool forward_wall, bool side_wall) { // подпрограмма для виртуального теста, получает на вход данные с "виртуальных датчиков"
-  if (navigator.this_is_finish()) { // если мы на финише?
-    Serial.println("end"); // то все
-    return;
-  }
-  int t = navigator.next_move(forward_wall,side_wall); // спрашиваем у навигатора что делать, и подаем ему на вход наличие стенок (данные с датчиков, 1 - стенка есть (рядом), 0 - стенки нет (рядом))
-  // при вызове этой (предыдущей) команды навигатор считает что вы выполните его команду (t) без ошибок
-  robot_move(t);
-}
-
 void robot_move(int t) { // выполняем роботом заданную команду
   if (t==NAVIGATOR_END) { // если навигатор сказал что мы приехали
     Serial.println("end");
